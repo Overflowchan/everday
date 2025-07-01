@@ -1,0 +1,67 @@
+version: '3.8'
+
+services:
+  frontend:
+    build:
+      context: ./client
+      dockerfile: Dockerfile
+    image: primeaph/sayt2-frontend:v2.0.0
+    ports:
+      - "3000:3000"
+    depends_on:
+      - backend
+    networks:
+      - app-network
+
+  backend:
+    build:
+      context: ./apiserver
+      dockerfile: Dockerfile
+    image: primeaph/sayt2-backend:v2.0.0
+    ports:
+      - "8010:8010"
+    depends_on:
+      - db
+    networks:
+      - app-network
+
+  db:
+    image: postgres:latest
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: 1234
+      POSTGRES_DB: sampledb
+    volumes:
+      - db-data:/var/lib/postgresql/data
+    networks:
+      - app-network
+
+
+
+  nginx:
+    container_name: nginx
+    build:
+      context: ./nginx
+      dockerfile: Dockerfile
+    ports:
+      - "80:80"
+      - "443:443"
+    image: primeaph/sayt2-nginx:v2.0.0
+    depends_on:
+      - frontend
+      - backend
+    networks:
+      - app-network
+    volumes:
+      - ./nginx/certs:/etc/nginx/certs
+
+
+
+
+ 
+
+volumes:
+  db-data:
+
+networks:
+  app-network:
