@@ -1,1 +1,1 @@
-# everday
+# everyday
