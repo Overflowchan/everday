@@ -1,0 +1,73 @@
+version: '3.8'
+services:
+  api:
+    build:
+      context: ./api
+      dockerfile: Dockerfile
+    restart: always
+    container_name: nodejs-api-sayt3
+    ports:
+      - "5000:5000"
+    networks:
+      - app-network
+    depends_on:
+      - mysql
+
+
+
+  frontend:
+    build:
+      context: ./client
+      dockerfile: Dockerfile
+    container_name: react-frontend-sayt3
+    restart: always
+    ports:
+      - "3000:3000"
+    networks:
+      - app-network
+
+
+  mysql:
+    image: mysql:5.7
+    container_name: mysql-app-sayt3
+    restart: always
+    volumes:
+      -  mysql-data:/var/lib/mysql
+      - ./api/init.sql:/docker-entrypoint-initdb.d/init.sql
+    networks:
+      - app-network
+    environment:
+      - MYSQL_ROOT_PASSWORD=1234
+      - MYSQL_DATABASE=nodejs_login
+      - MYSQL_USER=user
+      - MYSQL_PASSWORD=1234
+      - MYSQL_INITDB_SKIP_TZINFO=1
+
+  nginx:
+    build:
+      context: ./nginx
+      dockerfile: Dockerfile
+    container_name: nginx-sayt3
+    restart: always
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx/logs:/var/log/nginx
+      - ./nginx/certs:/etc/nginx/certs
+      - ./nginx/mime.types:/etc/nginx/mime.types
+      - ./nginx/nginx.conf:/etc/nginx/conf/nginx.conf
+      - ./nginx/certs/dhparam.pem:/etc/ssl/dhparam.pem
+    networks:
+      - app-network
+    depends_on:
+      - frontend
+      - api
+      
+
+volumes:
+  mysql-data:
+
+
+networks:
+  app-network:
